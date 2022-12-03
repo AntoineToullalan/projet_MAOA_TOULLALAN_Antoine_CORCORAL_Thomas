@@ -34,6 +34,7 @@ def retourne_valeur_min_sij(s,deja_visite_s):
     return (i_res+1,j_res+1) #on rajoute 1 car on cherche les identifiants des clients
 
 def cherche_circuit(chemin):
+    #cherche le circuit qui passe par le dernier élément de chemin
     elem=chemin[-1]
     res=[]
     i=0
@@ -41,9 +42,7 @@ def cherche_circuit(chemin):
         if elem2 == elem:
             return chemin[i:].copy()
         i+=1
-            
-            
-        
+  
 def reperage_circuits(chemin):
     circuits=[]
     i=0
@@ -54,13 +53,25 @@ def reperage_circuits(chemin):
     return circuits
         
 def circuits_differents(i,j,circuits):
+    circuits_ij=[]
     for circuit in circuits:
         if(i in circuit and j in circuit):
-            return False
-    return True
+            return (False,[])
+        else:
+            #on veut un circuit avec j et un circuit avec i
+            if len(circuits_ij)==0:
+                circuits_ij.append(circuit)
+            if len(circuits_ij)==1:
+                if( j in circuits_ij[0] and i in circuit):
+                    circuits_ij.append(circuit)
+                else if( i in circuits_ij[0] and j in circuit):
+                    circuits_ij.append(circuit)
+    return (True,circuits_ij)
 
-def heuristique_Clark_Wright(c,d,alpha_beta_gamma,capacite_camion):
+def demande_transportable_respectee(circuits_ij,d,capacite_camion):
+    #on regarde si la fusion des deux circuits permet de respecter la capacité du camion d'apres les demandes
     
+def heuristique_Clark_Wright(c,d,alpha_beta_gamma,capacite_camion):
     #alpha beta gamma doivent être compris entre 0 et 2
     alpha,beta,gamma=alpha_beta_gamma
     alpha=max(min(alpha,2),0)
@@ -77,7 +88,12 @@ def heuristique_Clark_Wright(c,d,alpha_beta_gamma,capacite_camion):
 
         i,j=retourne_valeur_min_sij(s,deja_visite_s)
         deja_visite_s.append((i,j))
-        while(circuits_differents(i,j,circuits)):
+        vf,circuits_ij=circuits_differents(i,j,circuits)
+        while(not (vf and demande_transportable_respectee(circuits_ij,d,capacite_camion)):
+            i,j=retourne_valeur_min_sij(s,deja_visite_s)
+            deja_visite_s.append((i,j))
+            
+            
             
     
     
