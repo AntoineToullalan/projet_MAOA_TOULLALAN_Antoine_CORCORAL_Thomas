@@ -4,7 +4,7 @@ using CPUTime
 using Graphs
 import HiGHS
 
-include("utils.jl")
+include("../utils.jl")
 
 
 function PDI1(prp, gfsec, optim="CPLEX")

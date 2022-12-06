@@ -4,8 +4,7 @@ using CPUTime
 using Graphs
 import HiGHS
 
-include("utils.jl")
-
+include("../utils.jl")
 
 function VRP(prp, t, optim="CPLEX")
     if optim == "HiGHS"

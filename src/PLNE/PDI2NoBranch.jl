@@ -5,7 +5,7 @@ using Graphs
 import HiGHS
 using Combinatorics
 
-include("utils.jl")
+include("../utils.jl")
 
 function PDI2(prp, optim="CPLEX")
     if optim == "HiGHS"

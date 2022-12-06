@@ -4,7 +4,7 @@ using CPLEX
 using Combinatorics
 
 include("PDI1NoBranch.jl")
-include("utils.jl")
+include("../utils.jl")
 
 function PDI_BC2(prp)
 
