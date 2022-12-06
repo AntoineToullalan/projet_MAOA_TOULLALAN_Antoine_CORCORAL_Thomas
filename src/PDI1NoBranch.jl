@@ -7,7 +7,7 @@ import HiGHS
 include("utils.jl")
 
 
-function PDI1(prp, optim="CPLEX")
+function PDI1(prp, gfsec, optim="CPLEX")
     if optim == "HiGHS"
         LP = Model(HiGHS.Optimizer)
     elseif optim == "CPLEX"
@@ -36,7 +36,7 @@ function PDI1(prp, optim="CPLEX")
             sum(prp["Clients"].h[i] * I_dec[i, t] for i in 1:n) + 
             sum(sum(c[i, j] * x_dec[i, j, t] for i in 1:n if i ≠ j) for j in 1:n) for t in 1:l))
     
-    # Constraint (2)
+    # Constraint
     
     for t in 1:l
         if t>1
@@ -45,7 +45,6 @@ function PDI1(prp, optim="CPLEX")
             @constraint(LP, prp["Clients"].L0[1] + p_dec[t] == sum(q_dec[i, t] for i in 2:n) + I_dec[1, t]) # (2)
         end
         for i in 1:n
-            #delete(LP, x_dec[i, i, t])
             @constraint(LP, x_dec[i, i, t] == 0)
             if i > 1
                 if t>1
@@ -58,18 +57,22 @@ function PDI1(prp, optim="CPLEX")
                 Mit = min(prp["Clients"].L[i], prp["Q"], sum(prp["Clients"].d[i][j] for j in t:l))
                 @constraint(LP, q_dec[i, t] <= Mit * z_dec[i, t]) # (7)
                 @constraint(LP, sum(x_dec[i, j, t] for j in 1:n) == z_dec[i, t]) # 8
-                #@constraint(LP, 0 <= w_dec[i, t]) # (12)
-                #@constraint(LP, w_dec[i, t] <= prp["Q"] * z_dec[i, t]) # (12)
+                if(!gfsec)
+                    @constraint(LP, 0 <= w_dec[i, t]) # (12)
+                    @constraint(LP, w_dec[i, t] <= prp["Q"] * z_dec[i, t]) # (12)
+                end
                 set_binary(z_dec[i,t]) # (15)
             end
             @constraint(LP, sum(x_dec[i, j, t] for j in 1:n) + sum(x_dec[j, i, t] for j in 1:n) == 2*z_dec[i, t]) # (9)
             # (11) START
             Mit = min(prp["Clients"].L[i], prp["Q"], sum(prp["Clients"].d[i][j] for j in t:l))
-            #for j in 1:n
-            #    if i ≠ j
-            #        @constraint(LP, w_dec[i, t] - w_dec[j, t] >= q_dec[i, t] - Mit * (1 - x_dec[i, j, t]))
-            #    end
-            #end
+            if(!gfsec)
+                for j in 1:n
+                   if i ≠ j
+                       @constraint(LP, w_dec[i, t] - w_dec[j, t] >= q_dec[i, t] - Mit * (1 - x_dec[i, j, t]))
+                   end
+                end
+            end
             # (11) END
             @constraint(LP, 0 <= I_dec[i, t]) # (13)
             @constraint(LP, 0 <= q_dec[i, t]) # (13)
@@ -83,14 +86,5 @@ function PDI1(prp, optim="CPLEX")
         @constraint(LP, 0 <= z_dec[1, t]) # (16)
         set_integer(z_dec[1, t]) # (16)
     end
-    
-    # End
-    
-    # print(LP)
-    # println()
-    # optimize!(LP)
-   
-    # println(solution_summary(LP, verbose=true))
-    
     return LP
 end
