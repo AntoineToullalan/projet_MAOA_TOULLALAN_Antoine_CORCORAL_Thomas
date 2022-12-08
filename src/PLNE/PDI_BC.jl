@@ -6,7 +6,7 @@ using Combinatorics
 include("PDI1NoBranch.jl")
 include("../utils.jl")
 
-function PDI_BC2(prp)
+function PDI_BC(prp)
 
     c = calcul_dist(prp)
     LP = Model(optimizer_with_attributes(CPLEX.Optimizer, "CPX_PARAM_EPINT" => 1e-15 ))
@@ -40,23 +40,23 @@ function PDI_BC2(prp)
         if(t==1)
             @constraint(LP, prp["Clients"].L0[1] + p_dec[t] == sum(q_dec[:,t]) - q_dec[1, t] + I_dec[1, t] ) # (2)
             for i in [2:n+1;] 
-                @constraint(LP, prp["Clients"].L0[i] + q_dec[i, t] == prp["Clients"].d[i][t] + I_dec[i, t]) # (3)
+                @constraint(LP, prp["Clients"].L0[i] + q_dec[i, t] == prp["Clients"].d[i][t+1] + I_dec[i, t]) # (3)
                 @constraint(LP, prp["Clients"].L0[i] + q_dec[i, t] <= prp["Clients"].L[i]) # (6)
             end
         else 
             @constraint(LP, I_dec[1, t-1] + p_dec[t] == sum(q_dec[:, t]) - q_dec[1, t] + I_dec[1, t]) # (2)
         end
-        Mt = min(prp["C"], sum(sum(prp["Clients"].d[i][j] for i in 2:n+1) for j in t:l))
+        Mt = min(prp["C"], sum(sum(prp["Clients"].d[i][j+1] for i in 2:n+1) for j in t:l))
         @constraint(LP, p_dec[t] <= Mt * y_dec[t]) # (4)
         @constraint(LP, I_dec[1, t] <= prp["Clients"].L[1]) # (5)
         @constraint(LP, z0_dec[t] <= m) # (10) 
         for i in [1:n+1;]
-            Mit = min(prp["Clients"].L[i], prp["Q"], sum(prp["Clients"].d[i][j] for j in t:l))
+            Mit = min(prp["Clients"].L[i], prp["Q"], sum(prp["Clients"].d[i][j+1] for j in t:l))
             if(i==1)
                 @constraint(LP, sum(x_dec[i, k, t] for k=1:n+1 if i!=k)+ sum(x_dec[k, i, t] for k=1:n+1 if k!=i) == 2 * z0_dec[t]) # (9)
             elseif(i>1)
                 if (t>1)
-                    @constraint(LP, I_dec[i, t-1] + q_dec[i ,t] == prp["Clients"].d[i][t] + I_dec[i, t]) # (3)
+                    @constraint(LP, I_dec[i, t-1] + q_dec[i ,t] == prp["Clients"].d[i][t+1] + I_dec[i, t]) # (3)
                     @constraint(LP, I_dec[i, t-1] + q_dec[i, t] <= prp["Clients"].L[i]) # (6)
                 end
                 @constraint(LP, q_dec[i, t] <= Mit * z_dec[i-1, t]) # (7)
@@ -92,10 +92,11 @@ function PDI_BC2(prp)
         end
     end
     
+    set_silent(LP)
     set_time_limit_sec(LP,600) # 10 minutes
     MOI.set(LP, MOI.LazyConstraintCallback(),lazySep_Violated)
     optimize!(LP)
-    println(solution_summary(LP, verbose=true))
-    return LP
+    # println(solution_summary(LP, verbose=true))
+    return value.(p_dec), value.(y_dec), value.(I_dec), value.(q_dec), value.(x_dec), l, n
 end
 

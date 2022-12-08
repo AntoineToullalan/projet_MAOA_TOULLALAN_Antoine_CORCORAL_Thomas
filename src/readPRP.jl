@@ -12,7 +12,7 @@ struct Clients
 end
 
 
-function Read_PRP_instance(filename)
+function Read_PRP_instance(filename, plne=true)
     hashmap = Dict()
     open(filename) do f
         
@@ -57,8 +57,11 @@ function Read_PRP_instance(filename)
                 hashmap[current_item] = current_value
             end
         end
+        if !plne
+            d = reduce(hcat,d)'[2:end, 2:end]
+        end
         C = Clients(nbc, X, Y, h, L, L0, d)
         hashmap["Clients"] = C
-    end 
+    end
     return hashmap
 end

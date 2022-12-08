@@ -45,6 +45,7 @@ function VRP(prp, t, optim="CPLEX")
         end
         @constraint(LP, w_dec[i] <= prp["Q"]) # (9)
     end
-    
-    return LP
+
+    optimize!(LP)
+    return value.(x), value.(w)
 end

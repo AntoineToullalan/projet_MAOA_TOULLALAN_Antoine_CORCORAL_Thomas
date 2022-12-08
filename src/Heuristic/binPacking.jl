@@ -1,18 +1,18 @@
-function binPacking(prp, t)
-    cumsum = 0
-    set = Vector{Int64}[]
-    subset = [0]
-    for i in 2:prp["n"]+1
-        cumsum += prp["Clients"].d[i][t]
-        if cumsum > prp["Q"]
-            push!(set, subset)
-            cumsum = demand
-            subset = [0]
-        end
-        push!(subset, i)
-    end
-    if length(subset) > 1
-        push!(set, subset)
-    end
-    return set
+function BP(data, q_dec, t)
+    n, Q, _sum, lots, cur = data["n"], data["Q"], 0, Vector{Int64}[], [0]
+	for i in 1:n 
+		if q_dec[i,t] != 0
+			_sum += q_dec[i,t]
+			if _sum > Q
+				push!(lots, cur)
+				_sum = q_dec[i,t]
+				cur = [0]
+			end
+			push!(cur, i)
+		end
+	end
+	if length(cur) > 1
+		push!(lots, cur)
+	end
+	return lots
 end
