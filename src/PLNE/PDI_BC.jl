@@ -97,6 +97,6 @@ function PDI_BC(prp)
     MOI.set(LP, MOI.LazyConstraintCallback(),lazySep_Violated)
     optimize!(LP)
     # println(solution_summary(LP, verbose=true))
-    return value.(p_dec), value.(y_dec), value.(I_dec), value.(q_dec), value.(x_dec), l, n
+    return value.(p_dec), value.(y_dec), value.(I_dec), value.(q_dec), value.(x_dec), l, n, objective_value(LP)
 end
 

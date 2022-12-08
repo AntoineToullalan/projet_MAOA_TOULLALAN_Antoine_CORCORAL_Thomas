@@ -39,7 +39,7 @@ function PDI_H(file, h)
     while it < itMax
         # LSP #
         p_dec, y_dec, I_dec, q_dec = LSP(prp, SC)
-        CoutSolcourante = sum(prp["u"] * p_dec[t] + prp["f"] * y_dec[t] + sum(prp["Clients"].h[i+1] * I_dec[i, t] for i = 1:n) for t = 1:l )
+        CoutSolcourante = sum(prp["u"] * p_dec[t] + prp["f"] * y_dec[t] + sum(prp["Clients"].h[i] * I_dec[i-1, t] for i = 1:n+1) for t = 1:l )
 
         # VRP #
         tours, CoutSolcourante = process_VRP(prp, q_dec, h, CoutSolcourante)
